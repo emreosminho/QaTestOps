@@ -1,0 +1,54 @@
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+
+
+class BasePage:
+    def __init__(self, driver: WebDriver):
+        self._driver = driver
+
+    def _find(self, locator: tuple) -> WebElement:
+        return self._driver.find_element(*locator)
+
+    def _type(self, locator: tuple, text: str, time: int = 10):
+        self._wait_until_element_is_visible(locator, time)
+        self._find(locator).send_keys(text)
+
+    def _click(self, locator: tuple, time: int = 10):
+        self._wait_until_element_is_visible(locator, time)
+        self._find(locator).click()
+
+    def _wait_until_element_is_visible(self, locator: tuple, time: int = 10):
+        wait = WebDriverWait(self._driver, time)
+        wait.until(EC.visibility_of_element_located(locator))
+
+    def _close_popup_if_present(self, locator: tuple, time: int = 5):
+
+        try:
+            self._wait_until_element_is_visible(locator, time)
+            self._find(locator).click()
+        except (TimeoutException, NoSuchElementException):
+            pass
+
+    def _is_element_visible(self, locator: tuple, time: int = 10) -> bool:
+        """Element görünür mü kontrol et"""
+        try:
+            self._wait_until_element_is_visible(locator, time)
+            return True
+        except (TimeoutException, NoSuchElementException):
+            return False
+
+    def _get_element_text(self, locator: tuple, time: int = 10) -> str:
+        """Element'in text içeriğini getir"""
+        self._wait_until_element_is_visible(locator, time)
+        return self._find(locator).text
+
+    @property
+    def current_url(self) -> str:
+        return self._driver.current_url
+
+    def _open_url(self, url: str):
+        self._driver.get(url)
+
