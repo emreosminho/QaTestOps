@@ -1,5 +1,12 @@
 pipeline {
-    agent any
+    agent {
+        dockerfile {
+            filename 'Dockerfile'
+            additionalBuildArgs '--build-arg BUILDKIT_INLINE_CACHE=1'
+            args '-v /tmp:/tmp'
+            reuseNode true
+        }
+    }
     
     options {
         timestamps()
@@ -7,8 +14,7 @@ pipeline {
     }
     
     environment {
-        PYTHON_VERSION = '3.11'
-        VIRTUAL_ENV = 'venv'
+        HEADLESS = 'true'
     }
     
     stages {
@@ -19,13 +25,15 @@ pipeline {
             }
         }
         
-        stage('Setup Environment') {
+        stage('Verify Environment') {
             steps {
                 sh '''
-                    python3 -m venv ${VIRTUAL_ENV}
-                    . ${VIRTUAL_ENV}/bin/activate
-                    python -m pip install --upgrade pip
-                    pip install -r requirements.txt
+                    echo "=== Environment Info ==="
+                    python --version
+                    google-chrome --version
+                    pip list
+                    echo "Working directory: $(pwd)"
+                    ls -la
                 '''
             }
         }
@@ -33,7 +41,6 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
-                    . ${VIRTUAL_ENV}/bin/activate
                     export HEADLESS=true
                     pytest tests/ --html=reports/report.html --self-contained-html -v
                 '''
@@ -57,7 +64,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed'
-            cleanWs()
+            archiveArtifacts artifacts: 'reports/*.html', allowEmptyArchive: true
         }
         success {
             echo '✅ Tests passed successfully!'
