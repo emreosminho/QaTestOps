@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Test Reports
+reports/*.html
+reports/*.xml
+reports/assets/
+allure-results/
+allure-report/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Selenium
+*.log
+chromedriver.exe
+geckodriver.exe
+
+# Environment
+.env
+.env.local
+
+# Jenkins
+.jenkins/

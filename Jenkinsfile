@@ -50,20 +50,35 @@ pipeline {
                         -v ${WORKSPACE}/reports:/app/reports \
                         -e HEADLESS=true \
                         test-automation:${BUILD_NUMBER}
+                    
+                    echo "=== Verifying Report Files ==="
+                    ls -lah ${WORKSPACE}/reports/
+                    if [ -f "${WORKSPACE}/reports/report.html" ]; then
+                        echo "✅ report.html found!"
+                    else
+                        echo "❌ report.html NOT found!"
+                    fi
                 '''
             }
         }
         
         stage('Generate Reports') {
             steps {
-                publishHTML([
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'reports',
-                    reportFiles: 'report.html',
-                    reportName: 'Test Report'
-                ])
+                script {
+                    if (fileExists('reports/report.html')) {
+                        publishHTML([
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'reports',
+                            reportFiles: 'report.html',
+                            reportName: 'Test Report'
+                        ])
+                        echo '✅ HTML Report published successfully!'
+                    } else {
+                        echo '⚠️ report.html not found, skipping HTML publish'
+                    }
+                }
             }
         }
     }
