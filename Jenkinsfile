@@ -63,7 +63,6 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed'
-            archiveArtifacts artifacts: 'reports/*.html', allowEmptyArchive: true
         }
         success {
             echo '✅ Tests passed successfully!'
