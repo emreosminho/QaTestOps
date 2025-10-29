@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        dockerfile {
-            filename 'Dockerfile'
-            additionalBuildArgs '--build-arg BUILDKIT_INLINE_CACHE=1'
-            args '-v /tmp:/tmp'
-        }
-    }
+    agent any
     
     options {
         timestamps()
@@ -22,34 +16,36 @@ pipeline {
                 checkout scm
                 echo 'Code checkout completed'
                 sh '''
-                    echo "=== Listing workspace files ==="
+                    echo "=== Workspace Files ==="
                     ls -la
-                    echo "=== Dockerfile content ==="
-                    cat Dockerfile || echo "Dockerfile not found!"
-                    echo "=== Git status ==="
-                    git status
+                    echo "=== Dockerfile Check ==="
+                    if [ -f Dockerfile ]; then
+                        echo "✅ Dockerfile exists"
+                        head -5 Dockerfile
+                    else
+                        echo "❌ Dockerfile NOT found!"
+                    fi
                 '''
             }
         }
         
-        stage('Verify Environment') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                    echo "=== Environment Info ==="
-                    python --version
-                    google-chrome --version
-                    pip list
-                    echo "Working directory: $(pwd)"
-                    ls -la
+                    echo "=== Building Docker Image ==="
+                    docker build -t test-automation:${BUILD_NUMBER} -f Dockerfile .
                 '''
             }
         }
         
-        stage('Run Tests') {
+        stage('Run Tests in Docker') {
             steps {
                 sh '''
-                    export HEADLESS=true
-                    pytest tests/ --html=reports/report.html --self-contained-html -v
+                    echo "=== Running Tests ==="
+                    docker run --rm \
+                        -v ${WORKSPACE}/reports:/app/reports \
+                        -e HEADLESS=true \
+                        test-automation:${BUILD_NUMBER}
                 '''
             }
         }
@@ -71,6 +67,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed'
+            sh 'docker rmi test-automation:${BUILD_NUMBER} || true'
         }
         success {
             echo '✅ Tests passed successfully!'
