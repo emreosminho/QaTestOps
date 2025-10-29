@@ -4,7 +4,6 @@ pipeline {
             filename 'Dockerfile'
             additionalBuildArgs '--build-arg BUILDKIT_INLINE_CACHE=1'
             args '-v /tmp:/tmp'
-            reuseNode true
         }
     }
     
