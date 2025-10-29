@@ -21,6 +21,14 @@ pipeline {
             steps {
                 checkout scm
                 echo 'Code checkout completed'
+                sh '''
+                    echo "=== Listing workspace files ==="
+                    ls -la
+                    echo "=== Dockerfile content ==="
+                    cat Dockerfile || echo "Dockerfile not found!"
+                    echo "=== Git status ==="
+                    git status
+                '''
             }
         }
         
