@@ -41,6 +41,10 @@ pipeline {
         stage('Run Tests in Docker') {
             steps {
                 sh '''
+                    echo "=== Preparing Reports Directory ==="
+                    mkdir -p ${WORKSPACE}/reports
+                    chmod 777 ${WORKSPACE}/reports
+                    
                     echo "=== Running Tests ==="
                     docker run --rm \
                         -v ${WORKSPACE}/reports:/app/reports \
