@@ -21,9 +21,9 @@ pipeline {
         
         stage('Setup Environment') {
             steps {
-                bat '''
-                    python -m venv %VIRTUAL_ENV%
-                    call %VIRTUAL_ENV%\\Scripts\\activate.bat
+                sh '''
+                    python3 -m venv ${VIRTUAL_ENV}
+                    . ${VIRTUAL_ENV}/bin/activate
                     python -m pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
@@ -32,8 +32,9 @@ pipeline {
         
         stage('Run Tests') {
             steps {
-                bat '''
-                    call %VIRTUAL_ENV%\\Scripts\\activate.bat
+                sh '''
+                    . ${VIRTUAL_ENV}/bin/activate
+                    export HEADLESS=true
                     pytest tests/ --html=reports/report.html --self-contained-html -v
                 '''
             }
